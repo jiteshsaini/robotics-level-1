@@ -77,13 +77,3 @@ function button_send()
     );
 }
 
-function button_herbert()
-{
-	var str = document.getElementById("txt_herbert").value;
-	//alert(str);
-	$.post("ajax_herbert.php",
-    {
-      str:str.toLowerCase()
-    }
-    );
-}
