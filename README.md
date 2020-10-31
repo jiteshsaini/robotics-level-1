@@ -1,5 +1,14 @@
 # Robotics Level 1 : Make Robot with Raspberry Pi | Web Controls 
 
+<p align="left">
+Read the article: <a href='https://helloworld.co.in/article/basic-robotics-make-robot-raspberry-pi-web-controls' target='_blank'>
+   <img src='https://github.com/jiteshsaini/earthrover1/blob/master/img/logo3.gif' height='40px'>
+</a> Watch the video on Yotube: 
+<a href='https://youtu.be/69w6Q40CBWw' target='_blank'>
+   <img src='https://github.com/jiteshsaini/earthrover1/blob/master/img/btn_youtube.png' height='40px'>
+</a>
+</p>
+
 In this first level, we will make a basic robotic platform. The hardware and software of this robotic platform will be enchanced progressively to conduct variety of DIY experiments.
 
 <p align="center">
@@ -25,9 +34,9 @@ Hardware Components used in the robot are:-
 
 ## Code Files
 The code of this robot is placed inside the folder 'earthrover'. You need to install a webserver Apache and PHP on Raspberry Pi to use this code.
-<br>Copy this folder 'earthrover' and place it in the public directory of webserver. The path of the folder should now be '/var/www/html/earthrover'
+<br>Copy the folder 'earthrover' and place it in the public directory of webserver. The path of the folder should now be '/var/www/html/earthrover'
 
-## Raspberry Pi configurations proir running the code
+## Raspberry Pi configurations prior running the code
 
 1. Set permissions
 
