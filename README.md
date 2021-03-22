@@ -2,17 +2,17 @@
 
 <p align="left">
 Read the article: <a href='https://helloworld.co.in/article/basic-robotics-make-robot-raspberry-pi-web-controls' target='_blank'>
-   <img src='https://github.com/jiteshsaini/earthrover1/blob/master/img/logo3.gif' height='40px'>
+   <img src='https://github.com/jiteshsaini/files/blob/master/img/logo3.gif' height='40px'>
 </a> Watch the video on Yotube: 
 <a href='https://youtu.be/69w6Q40CBWw' target='_blank'>
-   <img src='https://github.com/jiteshsaini/earthrover1/blob/master/img/btn_youtube.png' height='40px'>
+   <img src='https://github.com/jiteshsaini/files/blob/master/img/btn_youtube.png' height='40px'>
 </a>
 </p>
 
 In this first level, we will make a basic robotic platform. The hardware and software of this robotic platform will be enchanced progressively to conduct variety of DIY experiments.
 
 <p align="center">
-   <img src="https://github.com/jiteshsaini/robotics-level-1/blob/master/img/web-controlled-raspberry-pi-robot.gif">
+   <img src="https://github.com/jiteshsaini/files/blob/master/img/web-controlled-raspberry-pi-robot.gif">
 </p>
 
 ## Circuit Diagram of the Robot
