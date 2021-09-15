@@ -51,6 +51,6 @@ pi ALL=(ALL) NOPASSWD: ALL <br>
 www-data ALL=(ALL) NOPASSWD: ALL
 
 <p align="center">
-   <img src="https://github.com/jiteshsaini/robotics-level-1/blob/master/img/sudoers.png">
+   <img src="https://github.com/jiteshsaini/files/blob/main/img/sudoers.png">
 </p>
 
