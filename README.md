@@ -1,44 +1,43 @@
-# Robotics Level 1 : Make Robot with Raspberry Pi | Web Controls 
+# Robotics Level 1 : Make Robot with Raspberry Pi | Web Controls
 
 <p align="left">
 Read the article: <a href='https://helloworld.co.in/article/basic-robotics-make-robot-raspberry-pi-web-controls' target='_blank'>
-   <img src='https://github.com/jiteshsaini/files/blob/main/img/logo3.gif' height='40px'>
-</a> Watch the video on Yotube: 
+   <img src='https://raw.githubusercontent.com/jiteshsaini/files/main/img/logo3.gif' height='40px'>
+</a> Watch the video on Yotube:
 <a href='https://youtu.be/69w6Q40CBWw' target='_blank'>
-   <img src='https://github.com/jiteshsaini/files/blob/main/img/btn_youtube.png' height='40px'>
+   <img src='https://raw.githubusercontent.com/jiteshsaini/files/main/img/btn_youtube.png' height='40px'>
 </a>
 </p>
 
-In this first level, we will make a basic robotic platform. The hardware and software of this robotic platform will be enchanced progressively to conduct variety of DIY experiments.
+The first level: a basic robotic platform, driven from a web page on your phone.
+Later levels add a camera, sensors and on-board machine learning to the same
+chassis.
 
 <p align="center">
-   <img src="https://github.com/jiteshsaini/files/blob/main/img/web-controlled-raspberry-pi-robot.gif">
+   <img src="https://raw.githubusercontent.com/jiteshsaini/files/main/img/web-controlled-raspberry-pi-robot.gif">
 </p>
 
-> **Note on the article.** The article and video predate Raspberry Pi OS Bullseye.
-> The setup steps below supersede the ones shown there: the `raspi-gpio` command
-> the original code used has since been removed from Raspberry Pi OS, and the
-> `/etc/sudoers` edit it asked for is no longer necessary. The wiring, the pin
+> **The article and video predate Raspberry Pi OS Bullseye.** Their setup steps
+> no longer work: the `raspi-gpio` command the original code used was removed
+> from Raspberry Pi OS, and the `/etc/sudoers` edit they describe is no longer
+> needed. **Use the Install section below instead.** The wiring, the pin
 > assignments and the ideas are unchanged.
 
-## Circuit Diagram of the Robot
+## Hardware
 
-<p align="center">
-   <img src="https://helloworld.co.in/sites/default/files/inline-images/raspberry-pi-robot-circuit-diagram.jpeg">
-</p>
-
-Hardware Components used in the robot are:-
 - Raspberry Pi 3A+
 - MT 3608 DC-DC up converter
 - L293D Motor Driver Module
 - DC Motor, 100 RPM, 12 V
-- Battery Bank with 2 USB slots
+- Battery bank with 2 USB slots
 
 <p align="center">
-   <img src="https://helloworld.co.in/sites/default/files/inline-images/raspberry-pi-robot-component-connections.jpeg">
+   <img src="https://helloworld.co.in/1/sites/default/files/inline-images/raspberry-pi-robot-circuit-diagram.jpeg">
 </p>
 
-## GPIO pins used
+<p align="center">
+   <img src="https://helloworld.co.in/1/sites/default/files/inline-images/raspberry-pi-robot-component-connections.jpeg">
+</p>
 
 | Function | GPIO (BCM) |
 |---|---|
@@ -46,107 +45,62 @@ Hardware Components used in the robot are:-
 | Motor 2 | 14, 15 |
 | Motor speed (software PWM, 100 Hz) | 20, 21 |
 
-> GPIO 14 is also the UART transmit pin. If `console=serial0,115200` is present
-> in `/boot/firmware/cmdline.txt`, kernel boot messages go out that pin and can
-> twitch motor 2 while the Pi starts up. Removing it from that line stops it.
+> GPIO 14 is also the UART transmit pin. If `console=serial0,115200` appears in
+> `/boot/firmware/cmdline.txt`, kernel boot messages go out of that pin and can
+> twitch motor 2 while the Pi starts. Remove it from that line to stop it.
 
-## Software setup
+## Install
 
-Tested on **Raspberry Pi OS Trixie (Debian 13)** on a Raspberry Pi 3A+. The GPIO
-tooling used here (`pinctrl` and `rpi-lgpio`) is the portable kind, so a Pi 4 or
-Pi 5 should work as well — but neither has been tested.
-
-### 1. Install the web server and GPIO support
+Two commands on a fresh Raspberry Pi OS. Nothing to copy by hand.
 
 ```bash
-sudo apt update
-sudo apt install -y apache2 php libapache2-mod-php python3-rpi-lgpio
+curl -fsSL https://raw.githubusercontent.com/jiteshsaini/robotics-level-1/trixie-port/earthrover/setup.sh -o setup.sh
+sudo bash setup.sh
 ```
 
-`python3-rpi-lgpio` provides the familiar `RPi.GPIO` API on top of the kernel's
-gpiochip devices. Use it rather than the classic `python3-rpi.gpio`, which drives
-pins by writing `/dev/mem` directly and does not work on a Pi 5.
+Downloading first, rather than piping into `sudo bash`, lets you read the script
+before running it as root.
 
-### 2. Copy the code
-
-Copy the `earthrover` folder into the web server's public directory, so that it
-ends up at `/var/www/html/earthrover`.
-
-### 3. Give the web server access to the GPIO pins
-
-```bash
-sudo adduser www-data gpio
-sudo systemctl restart apache2
-```
-
-On Raspberry Pi OS, any member of the `gpio` group can drive the pins, so the
-web server needs **no root and no `sudo`**. Apache must be restarted, because a
-process only picks up group membership when it starts.
-
-> Earlier versions of this project told you to add
-> `www-data ALL=(ALL) NOPASSWD: ALL` to `/etc/sudoers`. Don't. That gives the web
-> server unrestricted root over the whole machine, and a typo in that file locks
-> you out of `sudo` entirely. The `gpio` group does the same job with none of
-> that risk.
-
-### 4. Set ownership
-
-```bash
-sudo chown -R www-data:www-data /var/www/html/earthrover
-sudo find /var/www/html/earthrover -type d -exec chmod 2775 {} +
-sudo find /var/www/html/earthrover -type f -exec chmod 664 {} +
-sudo adduser "$USER" www-data          # so you can edit the files too
-```
-
-Not `chmod 777`. Group ownership plus the setgid bit (`2775`) achieves the same
-thing, keeps new files group-correct automatically, and leaves permission
-problems visible instead of hiding them.
-
-### 5. Drive it
-
-Open this on a phone or laptop on the same network:
+When it finishes it prints an address. Open it on a phone or laptop on the same
+network:
 
 ```
 http://<your-pi-ip>/earthrover/remote.php
 ```
 
-## Troubleshooting
+Run the script again any time to update: it moves your existing copy to
+`earthrover.backup_<date>` rather than overwriting it.
 
-**Buttons respond but nothing moves.** Check whether the pins are being driven:
+Tested on **Raspberry Pi OS Trixie (Debian 13)** on a Raspberry Pi 3A+. The GPIO
+tooling used here (`pinctrl` and `rpi-lgpio`) is the portable kind, so a Pi 4 or
+Pi 5 should work too — neither has been tested.
 
-```bash
-pinctrl get 8 11 14 15
-```
+## What the script did
 
-Press *FWD* and run it again. Pin 8 should read `dh` (driving high) and pin 15
-`dh`, with 11 and 14 low.
+Worth knowing, both to understand the machine you now have and to do it by hand
+if you prefer:
 
-- `pinctrl: command not found` — you are on Buster or older. `pinctrl` arrived
-  with Bullseye; on Buster the equivalent was `raspi-gpio`.
-- Pins never change — `www-data` is probably not in the `gpio` group. Check with
-  `id www-data`, and remember to restart Apache after adding it.
+1. **Installed** `git`, `apache2`, `php`, `libapache2-mod-php` and
+   `python3-rpi-lgpio`. The last one provides the familiar `RPi.GPIO` API over
+   the kernel's gpiochip devices; the older `python3-rpi.gpio` writes `/dev/mem`
+   directly and does not work on a Pi 5.
+2. **Copied the code** to `/var/www/html/earthrover`. That exact path matters —
+   the Python scripts refer to it directly. The `.git` folder is left behind, so
+   nothing of it is served by the web server.
+3. **Added `www-data` to the `gpio` group.** On Raspberry Pi OS that is enough
+   to drive the pins, so the web server needs no root — no `sudo`, and no
+   editing `/etc/sudoers`.
+4. **Gave `www-data` ownership of `pwm/pwm1.txt`** — the only file this project
+   writes, where the speed slider stores its value. Everything else stays
+   read-only, so no `chmod 777`.
+5. **Restarted Apache**, because a process only picks up new group membership
+   when it starts.
 
-**Direction works but the speed slider does nothing.** The PWM generator is a
-separate process:
+## How it works
 
-```bash
-pgrep -af generate_pwm.py
-```
-
-Exactly one should be running after you move the slider. Pins 20 and 21 read
-`lo` even when PWM is active — software PWM toggles at 100 Hz, so a single
-sample catches one half of the cycle. That is not a fault.
-
-**The robot resets or behaves erratically under load.** Check for undervoltage:
-
-```bash
-vcgencmd get_throttled
-```
-
-`0x0` is clean; anything else means the supply has sagged. Motor stall current
-on a shared 5 V rail is the usual cause — keep motor power off the Pi's rail.
-
-## Code Files
+A button press posts to a small PHP file, which sets GPIO pins through
+`pinctrl`. Speed is separate: the slider writes a duty cycle to a file, and a
+Python script holds pins 20 and 21 at that duty cycle using software PWM.
 
 | File | Role |
 |---|---|
@@ -154,6 +108,52 @@ on a shared 5 V rail is the usual cause — keep motor power off the Pi's rail.
 | `js/remote.js` | Sends direction and speed to the server over AJAX |
 | `ajax_direction.php` | Receives a direction, calls `move()` |
 | `ajax_speed.php` | Receives a speed, writes `pwm/pwm1.txt`, restarts the PWM generator |
-| `vars.php` | Pin map and the movement functions; the only file that touches GPIO |
+| `vars.php` | Pin map and movement functions — the only file that touches GPIO |
 | `pwm/generate_pwm.py` | Holds pins 20/21 at the requested duty cycle |
-| `pwm/pwm_control.py` | Stops any previous generator and starts a fresh one |
+| `pwm/pwm_control.py` | Stops any previous generator, starts a fresh one |
+| `setup.sh` | The installer above |
+
+## Troubleshooting
+
+**Buttons respond but nothing moves.**
+
+```bash
+pinctrl get 8 11 14 15
+```
+
+Press *FWD* and run it again: pins 8 and 15 should read `dh`, with 11 and 14
+low.
+
+- `pinctrl: command not found` — you are on Buster or older. `pinctrl` arrived
+  with Bullseye.
+- Pins never change — `www-data` is probably not in the `gpio` group. Check with
+  `id www-data`; re-running `setup.sh` fixes it.
+
+**Direction works but the speed slider does nothing.**
+
+```bash
+pgrep -af generate_pwm.py
+```
+
+Exactly one should be running after you move the slider. If none is, check that
+the web server can write the speed file:
+
+```bash
+ls -l /var/www/html/earthrover/pwm/pwm1.txt      # owner should be www-data
+```
+
+When that file is not writable, `ajax_speed.php` stops at its `can't open file`
+guard and the page gives no visible sign of it.
+
+Note that pins 20 and 21 read `lo` even when PWM is active — software PWM
+toggles at 100 Hz, so a single sample catches one half of the cycle. That is not
+a fault.
+
+**The robot resets or behaves erratically under load.**
+
+```bash
+vcgencmd get_throttled
+```
+
+`0x0` is clean; anything else means the supply has sagged. Motor stall current
+on a shared 5 V rail is the usual cause — keep motor power off the Pi's rail.
