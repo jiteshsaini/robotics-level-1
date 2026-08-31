@@ -55,6 +55,9 @@ Two commands on a fresh Raspberry Pi OS. Nothing to copy by hand.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/jiteshsaini/robotics-level-1/trixie-port/earthrover/setup.sh -o setup.sh
+```
+
+```bash
 sudo bash setup.sh
 ```
 
