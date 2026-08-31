@@ -3,11 +3,11 @@
 
 import os, time
 
-os.system("sudo pkill -f generate_pwm.py")
+os.system("pkill -f generate_pwm.py")   # same user, so no sudo needed
 print("stopped !!!")
 
 #time.sleep(0.1)
 
 print("starting pwm")
-os.system("python /var/www/html/earthrover/pwm/generate_pwm.py &")
+os.system("python3 /var/www/html/earthrover/pwm/generate_pwm.py &")
 print("started !!!")

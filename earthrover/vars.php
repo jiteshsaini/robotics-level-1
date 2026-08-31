@@ -82,7 +82,13 @@ function set_gpio($pin,$x){
 		case '0': $z='dl';break;
 		case 'output': $z='op';break;
 	}
-	$cmd="sudo raspi-gpio set $pin $z";
+	// pinctrl replaces raspi-gpio, which was removed from Raspberry Pi OS
+	// after Buster. The arguments are identical.
+	//
+	// No sudo: on Raspberry Pi OS any member of the "gpio" group can drive
+	// the pins, so the web server needs no root at all. Add it once with:
+	//     sudo adduser www-data gpio && sudo systemctl restart apache2
+	$cmd="pinctrl set $pin $z";
 	system($cmd);
 	//echo"$x: $cmd <br>";
 }
