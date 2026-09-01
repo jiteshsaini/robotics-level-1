@@ -1,5 +1,7 @@
 # Robotics Level 1 : Make Robot with Raspberry Pi | Web Controls
 
+**Updated to work with the latest Raspberry Pi OS (Trixie, Debian 13).**
+
 <p align="left">
 Read the article: <a href='https://helloworld.co.in/article/basic-robotics-make-robot-raspberry-pi-web-controls' target='_blank'>
    <img src='https://raw.githubusercontent.com/jiteshsaini/files/main/img/logo3.gif' height='40px'>
@@ -17,11 +19,8 @@ chassis.
    <img src="https://raw.githubusercontent.com/jiteshsaini/files/main/img/web-controlled-raspberry-pi-robot.gif">
 </p>
 
-> **The article and video predate Raspberry Pi OS Bullseye.** Their setup steps
-> no longer work: the `raspi-gpio` command the original code used was removed
-> from Raspberry Pi OS, and the `/etc/sudoers` edit they describe is no longer
-> needed. **Use the Install section below instead.** The wiring, the pin
-> assignments and the ideas are unchanged.
+> Follow the **Install** section below for setup. The wiring, the pin
+> assignments and the ideas are exactly as shown in the article and video.
 
 ## Hardware
 
@@ -76,7 +75,7 @@ Run the script again any time to update: it moves your existing copy to
 
 Tested on **Raspberry Pi OS Trixie (Debian 13)** on a Raspberry Pi 3A+. The GPIO
 tooling used here (`pinctrl` and `rpi-lgpio`) is the portable kind, so a Pi 4 or
-Pi 5 should work too — neither has been tested.
+Pi 5 should work too.
 
 ## What the script did
 
@@ -116,7 +115,10 @@ Python script holds pins 20 and 21 at that duty cycle using software PWM.
 | `pwm/pwm_control.py` | Stops any previous generator, starts a fresh one |
 | `setup.sh` | The installer above |
 
-## Troubleshooting
+## If the robot doesn't move
+
+The installer checks its own work, so setup problems are reported when you run
+it. What it cannot check is your wiring and your power supply.
 
 **Buttons respond but nothing moves.**
 
@@ -127,43 +129,24 @@ pinctrl get 8,11,14,15
 Press *FWD* and run it again: pins 8 and 15 should read `hi`, with 11 and 14
 `lo`. Note the commas — `pinctrl get` will not accept space-separated pins.
 
-- `pinctrl: command not found` — you are on Buster or older. `pinctrl` arrived
-  with Bullseye.
-- Pins never change — `www-data` is probably not in the `gpio` group. Check with
-  `id www-data`; re-running `setup.sh` fixes it.
-
-**Only one motor runs, or the speed slider does nothing.**
-
-Both are the same fault. The L293D has one enable pin per motor (GPIO 20 and
-21), and those are driven by the PWM generator. If the generator is not running
-the two pins are left floating — and they do not float the same way, so one
-motor is enabled and the other is not. It looks like a wiring fault and is not.
-
-Check the generator:
+**Only one motor runs.** The L293D has one enable pin per motor (GPIO 20 and
+21), and the PWM generator drives them. If it is not running, those two pins
+float — and not the same way, so one motor is enabled and the other is not. It
+looks like a wiring fault and is not.
 
 ```bash
 pgrep -af generate_pwm.py
 ```
 
-Exactly one should be running after you move the slider. If none is, check that
-the web server can write the speed file:
+Exactly one should be running after you move the speed slider. Note that pins
+20 and 21 read `lo` even while PWM is active — it toggles at 100 Hz, so a
+single sample catches one half of the cycle.
 
-```bash
-ls -l /var/www/html/earthrover/pwm/pwm1.txt      # owner should be www-data
-```
-
-When that file is not writable, `ajax_speed.php` stops at its `can't open file`
-guard and the page gives no visible sign of it.
-
-Note that pins 20 and 21 read `lo` even when PWM is active — software PWM
-toggles at 100 Hz, so a single sample catches one half of the cycle. That is not
-a fault.
-
-**The robot resets or behaves erratically under load.**
+**The robot resets, or is erratic under load.**
 
 ```bash
 vcgencmd get_throttled
 ```
 
-`0x0` is clean; anything else means the supply has sagged. Motor stall current
-on a shared 5 V rail is the usual cause — keep motor power off the Pi's rail.
+`0x0` is clean. Anything else means the supply has sagged; motor stall current
+on a shared 5 V rail is the usual cause.
