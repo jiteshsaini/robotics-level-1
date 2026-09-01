@@ -121,18 +121,25 @@ Python script holds pins 20 and 21 at that duty cycle using software PWM.
 **Buttons respond but nothing moves.**
 
 ```bash
-pinctrl get 8 11 14 15
+pinctrl get 8,11,14,15
 ```
 
-Press *FWD* and run it again: pins 8 and 15 should read `dh`, with 11 and 14
-low.
+Press *FWD* and run it again: pins 8 and 15 should read `hi`, with 11 and 14
+`lo`. Note the commas — `pinctrl get` will not accept space-separated pins.
 
 - `pinctrl: command not found` — you are on Buster or older. `pinctrl` arrived
   with Bullseye.
 - Pins never change — `www-data` is probably not in the `gpio` group. Check with
   `id www-data`; re-running `setup.sh` fixes it.
 
-**Direction works but the speed slider does nothing.**
+**Only one motor runs, or the speed slider does nothing.**
+
+Both are the same fault. The L293D has one enable pin per motor (GPIO 20 and
+21), and those are driven by the PWM generator. If the generator is not running
+the two pins are left floating — and they do not float the same way, so one
+motor is enabled and the other is not. It looks like a wiring fault and is not.
+
+Check the generator:
 
 ```bash
 pgrep -af generate_pwm.py

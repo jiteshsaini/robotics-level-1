@@ -9,5 +9,7 @@ print("stopped !!!")
 #time.sleep(0.1)
 
 print("starting pwm")
-os.system("python3 /var/www/html/earthrover/pwm/generate_pwm.py &")
+# Run it from /tmp: the GPIO library writes a small working file in whatever
+# folder it starts in, and the web server cannot write to its own.
+os.system("cd /tmp && python3 /var/www/html/earthrover/pwm/generate_pwm.py &")
 print("started !!!")
