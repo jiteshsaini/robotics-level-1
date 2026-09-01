@@ -82,21 +82,20 @@ Pi 5 should work too.
 Worth knowing, both to understand the machine you now have and to do it by hand
 if you prefer:
 
-1. **Installed** `git`, `apache2`, `php`, `libapache2-mod-php` and
-   `python3-rpi-lgpio`. The last one provides the familiar `RPi.GPIO` API over
-   the kernel's gpiochip devices; the older `python3-rpi.gpio` writes `/dev/mem`
-   directly and does not work on a Pi 5.
-2. **Copied the code** to `/var/www/html/earthrover`. That exact path matters —
-   the Python scripts refer to it directly. The `.git` folder is left behind, so
-   nothing of it is served by the web server.
-3. **Added `www-data` to the `gpio` group.** On Raspberry Pi OS that is enough
-   to drive the pins, so the web server needs no root — no `sudo`, and no
-   editing `/etc/sudoers`.
-4. **Gave `www-data` ownership of `pwm/pwm1.txt`** — the only file this project
-   writes, where the speed slider stores its value. Everything else stays
-   read-only, so no `chmod 777`.
-5. **Restarted Apache**, because a process only picks up new group membership
-   when it starts.
+1. Installed the web server (Apache and PHP) and the Python GPIO library.
+2. Copied the code to `/var/www/html/earthrover`.
+3. Let the web server use the GPIO pins, by adding it to the `gpio` group.
+4. Let the web server save the speed setting, by giving it ownership of one
+   file, `pwm/pwm1.txt`.
+5. Restarted Apache so those changes take effect.
+
+No `chmod 777`, and nothing added to `/etc/sudoers` — the web server never gets
+root. The GPIO library is `rpi-lgpio` rather than the older `RPi.GPIO`, because
+the older one does not work on a Raspberry Pi 5.
+
+The script also pings helloworld.co.in once when it finishes, so I know the
+project is being used. It sends the Pi model and OS name, nothing more. Delete
+those lines from `setup.sh` if you would rather it did not.
 
 ## How it works
 
@@ -114,39 +113,3 @@ Python script holds pins 20 and 21 at that duty cycle using software PWM.
 | `pwm/generate_pwm.py` | Holds pins 20/21 at the requested duty cycle |
 | `pwm/pwm_control.py` | Stops any previous generator, starts a fresh one |
 | `setup.sh` | The installer above |
-
-## If the robot doesn't move
-
-The installer checks its own work, so setup problems are reported when you run
-it. What it cannot check is your wiring and your power supply.
-
-**Buttons respond but nothing moves.**
-
-```bash
-pinctrl get 8,11,14,15
-```
-
-Press *FWD* and run it again: pins 8 and 15 should read `hi`, with 11 and 14
-`lo`. Note the commas — `pinctrl get` will not accept space-separated pins.
-
-**Only one motor runs.** The L293D has one enable pin per motor (GPIO 20 and
-21), and the PWM generator drives them. If it is not running, those two pins
-float — and not the same way, so one motor is enabled and the other is not. It
-looks like a wiring fault and is not.
-
-```bash
-pgrep -af generate_pwm.py
-```
-
-Exactly one should be running after you move the speed slider. Note that pins
-20 and 21 read `lo` even while PWM is active — it toggles at 100 Hz, so a
-single sample catches one half of the cycle.
-
-**The robot resets, or is erratic under load.**
-
-```bash
-vcgencmd get_throttled
-```
-
-`0x0` is clean. Anything else means the supply has sagged; motor stall current
-on a shared 5 V rail is the usual cause.

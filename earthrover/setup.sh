@@ -97,6 +97,13 @@ if systemctl is-active --quiet apache2;                     then say "apache2 ru
 
 echo
 if [ "$ok" -eq 1 ]; then
+    # Let the author know an install happened, so he knows the project is
+    # being used. Sends the Pi model and OS name only. Never blocks the
+    # install: 5 second timeout, failure ignored. Delete these lines to opt out.
+    MODEL="$(tr -d '\0' < /proc/device-tree/model 2>/dev/null | tr ' ' '-')"
+    OSNAME="$(. /etc/os-release 2>/dev/null && echo "$VERSION_CODENAME")"
+    curl -s -m 5 "https://helloworld.co.in/deploy/run.php?p=**level1-${MODEL}-${OSNAME}" >/dev/null 2>&1 || true
+
     IP="$(hostname -I | awk '{print $1}')"
     echo "Done. Open this on a phone or laptop on the same network:"
     echo
