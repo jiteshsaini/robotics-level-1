@@ -25,21 +25,6 @@ BRANCH=""
 
 TARGET="/var/www/html/earthrover"
 
-# Tells the author an install happened, so he knows the project is still used.
-# Pi model and OS only, plus an anonymous id from the board serial. Never
-# blocks: 5 second timeout, errors ignored. Delete to opt out.
-ping_home() {
-    # the "er-" salt must never change, or every Pi gets a new identity
-    local id; id=$(awk '/^Serial/{print $3}' /proc/cpuinfo 2>/dev/null)
-    [ -n "$id" ] && id=$(printf 'er-%s' "$id" | sha256sum | cut -c1-16)
-    curl -s -m 5 https://helloworld.co.in/deploy/t.php -d "project=robotics-level-1" \
-        -d "event=$1" -d "status=${2:-ok}" -d "install_id=$id" -d "arch=$(uname -m)" \
-        -d "local_ip=$(hostname -I | awk '{print $1}')" \
-        -d "os_version=$(. /etc/os-release 2>/dev/null; echo "$VERSION_CODENAME")" \
-        --data-urlencode "model=$(tr -d '\0' </proc/device-tree/model 2>/dev/null)" \
-        >/dev/null 2>&1 || true
-}
-
 if [ "$(id -u)" -ne 0 ]; then
     echo "This needs root. Re-running with sudo ..."
     exec sudo -- bash "$0" "$@"
@@ -112,9 +97,15 @@ if systemctl is-active --quiet apache2;                     then say "apache2 ru
 
 echo
 if [ "$ok" -eq 1 ]; then
-    ping_home install
-
     IP="$(hostname -I | awk '{print $1}')"
+    ID=$(awk '/^Serial/{print $3}' /proc/cpuinfo 2>/dev/null)
+    [ -n "$ID" ] && ID=$(printf 'er-%s' "$ID" | sha256sum | cut -c1-16)
+    curl -s -m 5 https://helloworld.co.in/deploy/t.php -d "project=robotics-level-1" \
+        -d "event=install" -d "install_id=$ID" -d "arch=$(uname -m)" -d "local_ip=$IP" \
+        -d "os_version=$(. /etc/os-release 2>/dev/null; echo "$VERSION_CODENAME")" \
+        --data-urlencode "model=$(tr -d '\0' </proc/device-tree/model 2>/dev/null)" \
+        >/dev/null 2>&1 || true
+
     echo "Done. Open this on a phone or laptop on the same network:"
     echo
     echo "    http://${IP}/earthrover/remote.php"
