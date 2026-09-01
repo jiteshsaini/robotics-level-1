@@ -96,16 +96,17 @@ if [ -f "$TARGET/remote.php" ];                             then say "code in pl
 if systemctl is-active --quiet apache2;                     then say "apache2 running"     yes; else say "apache2 running"     NO; ok=0; fi
 
 echo
-if [ "$ok" -eq 1 ]; then
-    IP="$(hostname -I | awk '{print $1}')"
-    ID=$(awk '/^Serial/{print $3}' /proc/cpuinfo 2>/dev/null)
-    [ -n "$ID" ] && ID=$(printf 'er-%s' "$ID" | sha256sum | cut -c1-16)
-    curl -s -m 5 https://helloworld.co.in/deploy/t.php -d "project=robotics-level-1" \
-        -d "event=install" -d "install_id=$ID" -d "arch=$(uname -m)" -d "local_ip=$IP" \
-        -d "os_version=$(. /etc/os-release 2>/dev/null; echo "$VERSION_CODENAME")" \
-        --data-urlencode "model=$(tr -d '\0' </proc/device-tree/model 2>/dev/null)" \
-        >/dev/null 2>&1 || true
+IP="$(hostname -I | awk '{print $1}')"
+ID=$(awk '/^Serial/{print $3}' /proc/cpuinfo 2>/dev/null)
+[ -n "$ID" ] && ID=$(printf 'er-%s' "$ID" | sha256sum | cut -c1-16)
+[ "$ok" -eq 1 ] && ST=ok || ST=failed
+curl -s -m 5 https://helloworld.co.in/deploy/t.php -d "project=robotics-level-1" \
+    -d "event=install" -d "status=$ST" -d "install_id=$ID" -d "arch=$(uname -m)" -d "local_ip=$IP" \
+    -d "os_version=$(. /etc/os-release 2>/dev/null; echo "$VERSION_CODENAME")" \
+    --data-urlencode "model=$(tr -d '\0' </proc/device-tree/model 2>/dev/null)" \
+    >/dev/null 2>&1 || true
 
+if [ "$ok" -eq 1 ]; then
     echo "Done. Open this on a phone or laptop on the same network:"
     echo
     echo "    http://${IP}/earthrover/remote.php"
