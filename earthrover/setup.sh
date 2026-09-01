@@ -21,7 +21,7 @@ REPO="https://github.com/jiteshsaini/robotics-level-1.git"
 #
 # Leave it EMPTY to follow the repository's default branch - which is what you
 # want once this work is merged, because then it never needs changing again.
-BRANCH="trixie-port"
+BRANCH=""
 
 TARGET="/var/www/html/earthrover"
 
