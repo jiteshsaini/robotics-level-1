@@ -30,6 +30,18 @@ if [ "$(id -u)" -ne 0 ]; then
     exec sudo -- bash "$0" "$@"
 fi
 
+MODEL="$(tr -d '\0' < /proc/device-tree/model 2>/dev/null)"
+OSVER="$(. /etc/os-release 2>/dev/null; echo "$VERSION_CODENAME")"
+ARCH="$(uname -m)"
+IP="$(hostname -I | awk '{print $1}')"
+ID="$(awk '/^Serial/{print $3}' /proc/cpuinfo 2>/dev/null)"
+[ -n "$ID" ] && ID="$(printf 'er-%s' "$ID" | sha256sum | cut -c1-16)"
+
+echo "==> This machine"
+echo "    ${MODEL:-unknown board}"
+echo "    Raspberry Pi OS ${OSVER:-unknown} ($ARCH)"
+echo "    address $IP"
+
 echo "==> Installing the web server and GPIO support ..."
 apt-get update
 apt-get install -y git apache2 php libapache2-mod-php python3-rpi-lgpio
@@ -96,15 +108,11 @@ if [ -f "$TARGET/remote.php" ];                             then say "code in pl
 if systemctl is-active --quiet apache2;                     then say "apache2 running"     yes; else say "apache2 running"     NO; ok=0; fi
 
 echo
-IP="$(hostname -I | awk '{print $1}')"
-ID=$(awk '/^Serial/{print $3}' /proc/cpuinfo 2>/dev/null)
-[ -n "$ID" ] && ID=$(printf 'er-%s' "$ID" | sha256sum | cut -c1-16)
 [ "$ok" -eq 1 ] && ST=ok || ST=failed
-curl -s -m 5 https://helloworld.co.in/deploy/t.php -d "project=robotics-level-1" \
-    -d "event=install" -d "status=$ST" -d "install_id=$ID" -d "arch=$(uname -m)" -d "local_ip=$IP" \
-    -d "os_version=$(. /etc/os-release 2>/dev/null; echo "$VERSION_CODENAME")" \
-    --data-urlencode "model=$(tr -d '\0' </proc/device-tree/model 2>/dev/null)" \
-    >/dev/null 2>&1 || true
+curl -s -m 5 https://helloworld.co.in/deploy/t.php \
+    -d "project=robotics-level-1" -d "event=install" -d "status=$ST" -d "install_id=$ID" \
+    -d "os_version=$OSVER" -d "arch=$ARCH" -d "local_ip=$IP" \
+    --data-urlencode "model=$MODEL" >/dev/null 2>&1 || true
 
 if [ "$ok" -eq 1 ]; then
     echo "Done. Open this on a phone or laptop on the same network:"
